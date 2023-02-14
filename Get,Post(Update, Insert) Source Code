@@ -1,0 +1,192 @@
+//Model
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Systemic.MLM.Model
+{
+    public class mlclass
+    {
+    public string ClassID { get; set; }
+    public string ClassName { get; set; }
+    public string CreatedBy { get; set; }
+    public string CreatedDate { get; set; }
+    }
+}
+
+//Business Logic
+
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Systemic.Database;
+using Systemic.Library;
+using Systemic.MLM.Core.Common;
+using Systemic.MLM.Model;
+
+namespace Systemic.MLM.Core.Marketer
+{
+    //Get
+    public class blclass : baseCore
+    {
+        public blclass(string connectionString, string actionBy) : base(connectionString, actionBy)
+        {
+        }
+        public mlclass Class(string ClassID)
+        {
+            Command = new SqlDbCommand
+            {
+                Type = SqlDbCommandType.Text,
+                Text = "select ClassName,CreatedBy,ClassID,CreatedDate from ClassMaster1 where ClassID= @ClassID"
+            };
+            Command.Parameters.Add("@ClassID", ClassID);
+            DataRow dt = ReadDataRow();
+            mlclass obj = new mlclass();
+            if (dt != null)
+            {
+                obj.FillData(dt);
+            }
+            return obj;
+        }
+
+    //Update
+    public string PostClassDetail(mlclass data, string ClassSysID)
+    {
+        Command = new SqlDbCommand
+        {
+            Type = SqlDbCommandType.Text,
+            Text = "Update ClassMaster1 Set ClassName=@ClassName where ClassID=@ClassID"
+        };
+        Command.Parameters.Add("@ClassName", data.ClassName);
+        Command.Parameters.Add("@ClassID", data.ClassID);
+        string Result = ExecuteNonQuery().ToString();
+        return Result;
+    }
+
+    //Insert
+    public string ClassDetail(mlclass data)
+    {
+        Command = new SqlDbCommand
+        {
+            Type = SqlDbCommandType.Text,
+            Text = "insert into ClassMaster1(ClassID,ClassName)" + "values(@ClassID,@ClassName)"
+        };
+        Command.Parameters.Add("@ClassName", data.ClassName);
+        Command.Parameters.Add("@ClassID", data.ClassID);
+        string Result = ExecuteNonQuery().ToString();
+        return Result;
+
+    }
+}
+
+}
+
+//Controller
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using http://System.Net ;
+using System.Net.Http;
+using System.Web.Http;
+using Systemic.Library.Web;
+using Systemic.MLM.Core.Marketer;
+using Systemic.MLM.Model;
+using WebApi.App_Cofig;
+using ApiResponse = WebApi.App_Cofig.ApiResponse;
+
+namespace WebApi.Controllers
+{
+    /// <summary>
+    ///  All kind of marketer operation handled
+    /// </summary>
+[RoutePrefix("api/details")]
+public class ClassController : ApiController
+{
+    /// <summary>
+    /// Get the ClassDetails
+    /// </summary>
+    /// <param name="ClassID"></param>
+    /// <returns>Class Details </returns>
+    [HttpGet]
+    [Route("ClassDetail/{ClassID}")]
+    [AllowAnonymous]
+    public ApiResponse ClassDetails(string ClassID)
+    {
+        try
+        {
+            using (blclass bl = new blclass(ApiConfig.ConnectionString, "9994199925"))
+            {
+                var data = bl.Class(ClassID);
+                return new ApiResponse("Details", data, "Search Result");
+            }
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
+
+    //Update
+    /// <summary>
+    /// Get the Class Details
+    /// </summary>
+    /// <param name="data"></param>
+    /// <param name="ClassID"></param>
+    /// <returns>PostClassDetails </returns>
+    [HttpPost]
+    [Route("PostClassDetails/{ClassID}")]
+    [AllowAnonymous]
+    public ApiResponse PostClassDetails(mlclass data, string ClassID)
+    {
+        try
+        {
+            using (blclass bl = new blclass(ApiConfig.ConnectionString, "9994199925"))
+            {
+                bl.BeginTransaction();
+                var Result = bl.PostClassDetail(data,ClassID);
+                bl.CommitTransaction();
+                return new ApiResponse("Result", Result, "Search Result");
+            }
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
+
+    //Insert
+    /// <summary>
+    /// Get the PostDetails
+    /// </summary>
+    /// <param name="data"></param>
+    /// <returns>PostDetails </returns>
+    [HttpPost]
+    [Route("PostDetails")]
+    [AllowAnonymous]
+    public ApiResponse PostDetails(mlclass data)
+    {
+        try
+        {
+            using (blclass bl = new blclass(ApiConfig.ConnectionString, "9994199925"))
+            {
+                bl.BeginTransaction();
+                var Result = bl.ClassDetail(data);
+                bl.CommitTransaction();
+                return new ApiResponse("Result", Result, "Search Result");
+            }
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
+}
+
+}
