@@ -41,20 +41,19 @@ namespace Systemic.MLM.Core.Marketer
     {
         public List<mlsample> user()
         {
-            var list = new List<mllist>();
             var result = new List<mlsample>();
             List<mllist> list1 = new List<mlsample.mllist>()
             {
-                  new mllist(){SubjectName = "Tamil",SubjectHour = 0},
-                  new mllist(){SubjectName = "English",SubjectHour = 1},
-                  new mllist(){SubjectName = "Maths",SubjectHour = 2},
-                  new mllist(){SubjectName = "Science",SubjectHour = 3},
+                  new mllist(){SubjectName = "Tamil",SubjectHour = 0,SubjectTeacher = "Balaji"},
+                  new mllist(){SubjectName = "English",SubjectHour = 1,SubjectTeacher = "Shanthi"},
+                  new mllist(){SubjectName = "Maths",SubjectHour = 2,SubjectTeacher = "Kavitha"},
+                  new mllist(){SubjectName = "Science",SubjectHour = 3,SubjectTeacher = "Kamatchi"},
             };
 
             foreach (var item in list1)
             {
                 var nav = new mlsample()
-                {
+                { 
                     Day = "Monday",
                     SubjectCode = 1,
                     SubjectDetails = list1,
