@@ -1,0 +1,104 @@
+//Model
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Systemic.MLM.Model.Marketer
+{
+    public class mlsample
+    {
+        public string Day { get; set; }
+        public int SubjectCode { get; set; }
+        public List<mllist> SubjectDetails { get; set; }
+
+        public class mllist
+        {
+            public string SubjectName { get; set; }
+            public int SubjectHour { get; set; }
+        }
+    }
+}
+
+//Business Logic
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web.UI.MobileControls;
+using Systemic.Database;
+using Systemic.MLM.Core.Common;
+using Systemic.MLM.Model.Marketer;
+using static Systemic.MLM.Model.Marketer.mlsample;
+
+namespace Systemic.MLM.Core.Marketer
+{
+    public class blsample
+    {
+        public List<mlsample> user()
+        {
+            var list = new List<mllist>();
+            var result = new List<mlsample>();
+            List<mllist> list1 = new List<mlsample.mllist>()
+            {
+                  new mllist(){SubjectName = "Tamil",SubjectHour = 0},
+                  new mllist(){SubjectName = "English",SubjectHour = 1},
+                  new mllist(){SubjectName = "Maths",SubjectHour = 2},
+                  new mllist(){SubjectName = "Science",SubjectHour = 3},
+            };
+
+            foreach (var item in list1)
+            {
+                var nav = new mlsample()
+                {
+                    Day = "Monday",
+                    SubjectCode = 1,
+                    SubjectDetails = list1,
+                };
+                result.Add(nav);
+            }
+            return result;
+        }
+    }
+}
+
+
+//Controller
+
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using Systemic.Library.Web;
+using Systemic.MLM.Core.Marketer;
+using Systemic.MLM.Model.Marketer;
+using WebApi.App_Cofig;
+using ApiResponse = WebApi.App_Cofig.ApiResponse;
+
+namespace WebApi.Controllers
+{
+    /// <summary>
+    ///  All kind of marketer operation handled
+    /// </summary>
+
+    [RoutePrefix("api/sample")]
+    public class SampleController : ApiController
+    {
+        [HttpGet]
+        [Route("SampleDetails")]
+        public ApiResponse SampleDetail()
+        {
+            blsample bl = new blsample();
+            var data = bl.user();
+            return new ApiResponse("Result", data, "Searchresult");
+        }
+    }
+}
+
