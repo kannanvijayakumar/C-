@@ -1,0 +1,145 @@
+//Model
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Systemic.MLM.Model.Marketer
+{
+    public class mlmapping
+    {
+       public string MappingID { get; set; }
+       public int ClassSysID { get; set; }
+       public int SubjectSysID { get; set; }
+}
+    }
+
+
+//Business Logic 
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Web.UI.MobileControls;
+using Systemic.Database;
+using Systemic.Library;
+using Systemic.MLM.Core.Common;
+using Systemic.MLM.Model.Marketer;
+
+namespace Systemic.MLM.Core.Marketer
+{
+    public class blmapping : baseCore
+    {
+        public blmapping(string connectionString, string actionBy) : base(connectionString, actionBy)
+        {
+        }
+        public string MappingDetail(mlmapping Data)
+        {
+            string ClassID = string.Empty;
+            string SubjectID = string.Empty;
+            Command = new SqlDbCommand
+            {
+                Text = "select count(1) from SubjectMaster1 where SubjectSysID=@SubjectSysID"
+            };
+            Command.Parameters.Add("@SubjectSysID", Data.SubjectSysID);
+            int AffectedRows = ExecuteScalar().ToInt();
+            if (AffectedRows > 0)
+            {
+                Command = new SqlDbCommand
+                {
+                    Text = "select count(1) from ClassMaster1 where ClassSysID=@ClassSysID"
+                };
+                Command.Parameters.Add("@ClassSysID", Data.ClassSysID);
+                int AffectedRows1 = ExecuteScalar().ToInt();
+                if (AffectedRows1 > 0)
+                {
+                    Command = new SqlDbCommand
+                    {
+                        Text = "select count(1) from SubjectMapping1 where ClassSysID=@ClassSysID and SubjectSysID=@SubjectSysID"
+                    };
+                    Command.Parameters.Add("@ClassSysID", Data.ClassSysID);
+                    Command.Parameters.Add("@SubjectSysID", Data.SubjectSysID);
+                    int AffectedRows2 = ExecuteScalar().ToInt();
+                    if (AffectedRows2 == 0)
+                    {
+                        Command = new SqlDbCommand
+                        {
+                            Text = "insert into SubjectMapping1(ClassSysID,SubjectSysID,MappingID)" + " values(@ClassSysID,@SubjectSysID,@MappingID)"
+                        };
+                        Command.Parameters.Add("@ClassSysID", Data.ClassSysID);
+                        Command.Parameters.Add("@SubjectSysID", Data.SubjectSysID);
+                        Command.Parameters.Add("@MappingID", Data.MappingID);
+                        string Result = ExecuteNonQuery().ToString();
+                        return Result;
+                    }
+                    else
+                    {
+                        throw new Exception("Already Mapped");
+                    }
+                }
+                else
+                {
+                    throw new Exception("Invalid Class");
+                }
+        }
+        else
+        {
+            throw new Exception("Invalid Subject");
+        }
+    }
+}
+
+
+//Controller
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using http://System.Net ;
+using System.Net.Http;
+using System.Web.Http;
+using Systemic.Library.Web;
+using Systemic.MLM.Core.Marketer;
+using Systemic.MLM.Model.Marketer;
+using WebApi.App_Cofig;
+
+using ApiResponse = WebApi.App_Cofig.ApiResponse;
+
+namespace WebApi.Controllers
+{
+ /// <summary>
+ ///  All kind of marketer operation handled
+ /// </summary>
+ [RoutePrefix("api")]
+    public class MappingController : ApiController
+    {
+    /// <summary>
+    /// Get the Mapping Details
+    /// </summary>
+    /// <param name="Data"></param>
+    /// <returns>MapppingDetails </returns>
+    [HttpPost]
+    [Route("MappingDetails")]
+    [AllowAnonymous]
+    public ApiResponse MappingDetails(mlmapping Data)
+    {
+        try
+        {
+            using (blmapping bl = new blmapping(ApiConfig.ConnectionString, "9994199925"))
+            {
+                var Result = bl.MappingDetail(Data);
+                return new ApiResponse("Result", Result, "Search Result");
+            }
+        }
+        catch (Exception ex)
+        {
+            throw ex;
+        }
+    }
+
+}
+}
